@@ -57,11 +57,19 @@ public class WiFiContent {
         public String bssid;
         public String ssid;
         public String capabilities;
+        public String securityType;
 
         public WiFiItem(String bssid, String ssid, String capabilities) {
             this.bssid = bssid;
             this.ssid = ssid;
             this.capabilities = capabilities;
+            if(capabilities.contains("WPA")) {
+                this.securityType= "WPA";
+            } else if(capabilities.contains("WEP")) {
+                this.securityType= "WEP";
+            } else {
+                this.securityType= "Open";
+            }
         }
 
         @Override

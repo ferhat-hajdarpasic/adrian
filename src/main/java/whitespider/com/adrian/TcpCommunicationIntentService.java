@@ -1,8 +1,14 @@
 package whitespider.com.adrian;
 
+import android.app.Activity;
 import android.app.IntentService;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import whitespider.com.adrian.command.ConfigureWiFiCommand;
 
@@ -15,21 +21,30 @@ import java.net.SocketAddress;
 
 public class TcpCommunicationIntentService  extends IntentService {
     private static final String TAG = TcpCommunicationIntentService.class.getSimpleName();
+    public static final String DOMAIN_KEY = "DOMAIN_KEY";
+    public static final String PASSWORD_KEY ="PASSWORD_KEY";
+    public static final String SECURITY_TYPE_KEY = "SECURITY_TYPE_KEY";
 
     public TcpCommunicationIntentService() {
         super("TCP COMMS");
     }
 
     @Override
-    protected void onHandleIntent(Intent intent) {
-        String dataString = intent.getDataString();
-        Log.i(TAG, "Got data " + dataString);
+    protected void onHandleIntent(final Intent intent) {
+        String domain = intent.getStringExtra(DOMAIN_KEY);
+        String password = intent.getStringExtra(PASSWORD_KEY);
+        int securityType = intent.getIntExtra(SECURITY_TYPE_KEY, -1);
 
         ConfigureWiFiCommand command = new ConfigureWiFiCommand();
-        command.Domain = intent.getStringExtra("SSID");
-        command.Password = "Password123";
-        command.SecurityType =1;
-        SocketAddress sockaddr = new InetSocketAddress("192.168.0.7", 9080);
+        command.Domain = domain;
+        command.Password = password;
+        command.SecurityType = securityType;
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String routerHostname = prefs.getString("router_hostname", "");
+        int routerPort = Integer.valueOf(prefs.getString("router_port", "0"));
+
+        SocketAddress sockaddr = new InetSocketAddress(routerHostname, routerPort);
 
         Socket socket = new Socket();
         try {
@@ -48,12 +63,11 @@ public class TcpCommunicationIntentService  extends IntentService {
             }
         } catch (IOException e) {
             Log.e(TAG, "Error concatenating two arrays.", e);
-            throw new RuntimeException("Error concatenating two arrays.", e);
         } finally {
             try {
                 socket.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Error closing socket.", e);
             }
         }
     }

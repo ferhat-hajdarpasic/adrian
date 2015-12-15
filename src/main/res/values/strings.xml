@@ -69,6 +69,7 @@
     <string name="password_label_text">Password</string>
     <string name="security_type_label_text">Security Type</string>
     <string name="submit_button_text">Submit</string>
+    <string name="show_password">Show Password</string>
     <string-array name="test_wifi_names">
         <item>Shuttle Badminton</item>
         <item>Tennis</item>

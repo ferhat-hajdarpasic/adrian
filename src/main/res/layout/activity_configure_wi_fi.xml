@@ -14,12 +14,14 @@
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:weightSum="1">
 
         <ScrollView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/scrollView2" >
+            android:id="@+id/scrollView2"
+            android:layout_weight="1.80">
 
             <TableLayout
                 android:layout_width="match_parent"
@@ -44,9 +46,13 @@
                         android:focusable="true"
                         android:focusableInTouchMode="true"
                         android:choiceMode="singleChoice"
-                        android:listSelector="@color/colorPrimary"
                         android:fastScrollAlwaysVisible="true"
-                        android:nestedScrollingEnabled="true" />
+                        android:nestedScrollingEnabled="true"
+                        android:listSelector="@android:drawable/divider_horizontal_textfield"
+                        android:drawSelectorOnTop="false"
+                        android:headerDividersEnabled="false"
+                        android:footerDividersEnabled="false"
+                        android:longClickable="true" />
                 </TableRow>
                 <TableRow
                     android:layout_width="match_parent"
@@ -78,16 +84,39 @@
                         android:id="@+id/securityTypeLabel"
                         android:labelFor="@+id/securityTypeListView" />
 
-                    <ListView
+                    <LinearLayout
+                        android:orientation="vertical"
                         android:layout_width="match_parent"
-                        android:layout_height="160dp"
-                        android:id="@+id/securityTypeListView"
-                        android:entries="@array/wifi_security_types"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:focusableInTouchMode="true"
-                        android:choiceMode="singleChoice"
-                        android:listSelector="@color/colorPrimary" />
+                        android:layout_height="match_parent"
+                        android:layout_column="1">
+
+                        <RadioGroup
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+                            <RadioButton
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Open"
+                                android:id="@+id/securityTypeOpen"
+                                android:checked="false" />
+
+                            <RadioButton
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="WPA/WPA2"
+                                android:id="@+id/securityTypeWpa"
+                                android:checked="false" />
+
+                            <RadioButton
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="WEP"
+                                android:id="@+id/securityTypeWep"
+                                android:checked="false" />
+                        </RadioGroup>
+                    </LinearLayout>
+
                 </TableRow>
                 <TableRow
                     android:layout_width="match_parent"
@@ -105,12 +134,29 @@
                         android:layout_height="wrap_content"
                         android:inputType="textPassword"
                         android:ems="10"
-                        android:id="@+id/editPasswordText" />
+                        android:id="@+id/editPasswordText"
+                        android:password="false" />
+
                 </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <CheckBox
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/show_password"
+                        android:id="@+id/checkBoxShowPassword"
+                        android:layout_column="1"
+                        android:checked="false"
+                        android:clickable="true"
+                        android:onClick="showPasswordOnClick" />
+                </TableRow>
+
                 <TableRow
                     android:layout_width="fill_parent"
                     android:layout_height="match_parent">
-
                     <Button
                         android:layout_width="fill_parent"
                         android:layout_height="40dp"
@@ -119,7 +165,8 @@
                         android:clickable="true"
                         android:enabled="true"
                         android:focusable="true"
-                        android:layout_column="1" />
+                        android:layout_column="1"
+                        android:onClick="submit" />
                 </TableRow>
             </TableLayout>
         </ScrollView>

@@ -1,13 +1,18 @@
 package whitespider.com.adrian;
 
 import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.net.wifi.ScanResult;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
+import android.text.method.BaseKeyListener;
 import android.text.method.KeyListener;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -19,8 +24,10 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,8 +35,10 @@ import java.util.List;
 import whitespider.com.adrian.WiFiContent.WiFiItem;
 
 public class ConfigureWiFiActivity extends AppCompatActivity {
+    public static final String CONFIGURE_WIFI_EVENT = "configure-wifi-event";
+    public static final String CONFIGURE_WFI_RESULT_MESSAGE = "CONFIGURE_WFI_RESULT_MESSAGE";
     private ArrayAdapter<WiFiItem> arrayAdapter;
-    private ListView listView;
+    private ListView wiFiDomainsListView;
     private TextView hiddenDomain;
     private TextView wiFiPassword;
     private RadioButton radioButtonSecurityTypeOpen;
@@ -37,6 +46,9 @@ public class ConfigureWiFiActivity extends AppCompatActivity {
     private RadioButton radioButtonSecurityTypeWpa;
     private Button submitButton;
     private int selectedPosition = -1;
+    private BroadcastReceiver broadcastReceiver;
+    private ProgressBar wifiCollectProgressBar;
+    private ProgressBar broadcastProgressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,23 +57,25 @@ public class ConfigureWiFiActivity extends AppCompatActivity {
         BroadcastReceiver mWifiScanReceiver = new WiFiBroadcastReceiver(this);
         arrayAdapter =new ArrayAdapter<WiFiItem>(this.getApplicationContext(),
                         android.R.layout.simple_list_item_checked);
-        listView = (ListView)this.findViewById(R.id.wiFiDomainsListView);
+        wiFiDomainsListView = (ListView)this.findViewById(R.id.wiFiDomainsListView);
         hiddenDomain = (TextView) this.findViewById(R.id.editHiddenDomainText);
         wiFiPassword = (TextView) this.findViewById(R.id.editPasswordText);
         radioButtonSecurityTypeOpen = (RadioButton)this.findViewById(R.id.securityTypeOpen);
         radioButtonSecurityTypeWep = (RadioButton)this.findViewById(R.id.securityTypeWep);
         radioButtonSecurityTypeWpa = (RadioButton)this.findViewById(R.id.securityTypeWpa);
         submitButton = (Button)this.findViewById(R.id.submitButton);
-        listView.setAdapter(arrayAdapter);
+        wifiCollectProgressBar = (ProgressBar)this.findViewById(R.id.wifiCollectProgressBar);
+        broadcastProgressBar = (ProgressBar)this.findViewById(R.id.broadcastProgressBar);
+
+        wiFiDomainsListView.setAdapter(arrayAdapter);
 
         hiddenDomain.clearFocus();
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
+        wiFiDomainsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 selectedPosition = position;
-                hiddenDomain.clearFocus();
+                //hiddenDomain.clearFocus();
                 final WiFiItem item = arrayAdapter.getItem(position);
                 if (item.securityType != null) {
                     switch (item.securityType) {
@@ -87,35 +101,36 @@ public class ConfigureWiFiActivity extends AppCompatActivity {
                             break;
                     }
                 }
-                hiddenDomain.setText("");
-                CheckEnabledConfiguration();
+//                hiddenDomain.setText("");
+                checkEnabledConfiguration();
+
             }
         });
         radioButtonSecurityTypeWpa.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 hiddenDomain.clearFocus();
-                CheckEnabledConfiguration();
+                checkEnabledConfiguration();
             }
         });
         radioButtonSecurityTypeWep.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 hiddenDomain.clearFocus();
-                CheckEnabledConfiguration();
+                checkEnabledConfiguration();
             }
         });
         radioButtonSecurityTypeOpen.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 hiddenDomain.clearFocus();
-                CheckEnabledConfiguration();
+                checkEnabledConfiguration();
             }
         });
         hiddenDomain.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                CheckEnabledConfiguration();
+                checkEnabledConfiguration();
             }
         });
         hiddenDomain.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -131,13 +146,35 @@ public class ConfigureWiFiActivity extends AppCompatActivity {
                 }
             }
         });
-        wiFiPassword.setOnTouchListener(new View.OnTouchListener() {
+        final TextWatcher textWatcher = new TextWatcher() {
             @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                CheckEnabledConfiguration();
-                return false;
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
             }
-        });
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                checkEnabledConfiguration();
+            }
+        };
+        wiFiPassword.addTextChangedListener(textWatcher);
+        hiddenDomain.addTextChangedListener(textWatcher);
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                broadcastProgressBar.setVisibility(View.GONE);
+                String message = intent.getStringExtra(CONFIGURE_WFI_RESULT_MESSAGE);
+                Toast.makeText(ConfigureWiFiActivity.this, message, Toast.LENGTH_SHORT).show();
+            }
+        };
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                broadcastReceiver,
+                new IntentFilter(CONFIGURE_WIFI_EVENT));
     }
 
     public void refreshWiFiList(List<ScanResult> mScanResults) {
@@ -152,9 +189,11 @@ public class ConfigureWiFiActivity extends AppCompatActivity {
         }
 
         arrayAdapter.addAll(wiFiNetworks);
+        wifiCollectProgressBar.setVisibility(View.INVISIBLE);
+        wiFiDomainsListView.setVisibility(View.VISIBLE);
     }
 
-    private void CheckEnabledConfiguration() {
+    private void checkEnabledConfiguration() {
         final CharSequence text = hiddenDomain.getText();
         final CharSequence text1 = wiFiPassword.getText();
         final boolean checked = radioButtonSecurityTypeOpen.isChecked();
@@ -197,5 +236,14 @@ public class ConfigureWiFiActivity extends AppCompatActivity {
         intent.putExtra(TcpCommunicationIntentService.SECURITY_TYPE_KEY, securityType);
 
         this.startService(intent);
+
+        broadcastProgressBar.setVisibility(View.VISIBLE);
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
+        super.onDestroy();
     }
 }

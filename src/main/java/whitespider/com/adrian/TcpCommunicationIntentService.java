@@ -2,13 +2,18 @@ package whitespider.com.adrian;
 
 import android.app.Activity;
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
 
 import whitespider.com.adrian.command.ConfigureWiFiCommand;
 
@@ -18,6 +23,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.SocketTimeoutException;
 
 public class TcpCommunicationIntentService  extends IntentService {
     private static final String TAG = TcpCommunicationIntentService.class.getSimpleName();
@@ -47,6 +53,7 @@ public class TcpCommunicationIntentService  extends IntentService {
         SocketAddress sockaddr = new InetSocketAddress(routerHostname, routerPort);
 
         Socket socket = new Socket();
+        final Context applicationContext = getApplicationContext();
         try {
             socket.connect(sockaddr, 15000); //10 second connection timeout
             if (socket.isConnected()) {
@@ -54,15 +61,15 @@ public class TcpCommunicationIntentService  extends IntentService {
                 OutputStream nos = socket.getOutputStream();
                 byte[] dataToSend = command.getBytes();
                 nos.write(dataToSend); //This is blocking
-                Log.i(TAG, "Message sent");
                 byte[] buffer = new byte[4096];
-                Log.i(TAG, "Waiting for response");
-                int read = nis.read(buffer, 0, buffer.length); //This is blocking
-                Log.i(TAG, "Got response");
-                Log.i(TAG, "Finished collecting response");
+                int read = nis.read(buffer, 0, buffer.length);
+                final String message = "Finished configuring wifi";
+                Log.i(TAG, message);
+                sendResponse(message);
             }
         } catch (IOException e) {
-            Log.e(TAG, "Error concatenating two arrays.", e);
+            Log.e(TAG, "Error configuring wifi.", e);
+            sendResponse(e.getMessage());
         } finally {
             try {
                 socket.close();
@@ -70,5 +77,11 @@ public class TcpCommunicationIntentService  extends IntentService {
                 Log.e(TAG, "Error closing socket.", e);
             }
         }
+    }
+
+    private void sendResponse(String message) {
+        Intent responseIntent = new Intent(ConfigureWiFiActivity.CONFIGURE_WIFI_EVENT);
+        responseIntent.putExtra(ConfigureWiFiActivity.CONFIGURE_WFI_RESULT_MESSAGE, message);
+        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(responseIntent);
     }
 }

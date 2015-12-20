@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+    android:layout_width="fill_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
@@ -13,12 +13,14 @@
 
     <LinearLayout
         android:orientation="vertical"
-        android:layout_width="match_parent"
+        android:layout_width="fill_parent"
         android:layout_height="match_parent"
-        android:weightSum="1">
+        android:weightSum="1"
+        android:focusable="true"
+        android:focusableInTouchMode="true">
 
         <ScrollView
-            android:layout_width="wrap_content"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:id="@+id/scrollView2"
             android:layout_weight="1.80">
@@ -37,23 +39,38 @@
                         android:text="@string/wifi_domains_label_text"
                         android:id="@+id/labelWiFiDomains" />
 
-                    <ListView
+                    <FrameLayout
                         android:layout_width="wrap_content"
-                        android:layout_height="160dp"
-                        android:id="@+id/wiFiDomainsListView"
-                        android:entries="@array/test_wifi_names"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:focusableInTouchMode="true"
-                        android:choiceMode="singleChoice"
-                        android:fastScrollAlwaysVisible="true"
-                        android:nestedScrollingEnabled="true"
-                        android:listSelector="@android:drawable/divider_horizontal_textfield"
-                        android:drawSelectorOnTop="false"
-                        android:headerDividersEnabled="false"
-                        android:footerDividersEnabled="false"
-                        android:longClickable="true" />
+                        android:layout_height="160dp">
+
+                        <ListView
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/wiFiDomainsListView"
+                            android:entries="@array/test_wifi_names"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:choiceMode="singleChoice"
+                            android:fastScrollAlwaysVisible="true"
+                            android:nestedScrollingEnabled="true"
+                            android:listSelector="@android:drawable/divider_horizontal_textfield"
+                            android:drawSelectorOnTop="false"
+                            android:headerDividersEnabled="false"
+                            android:footerDividersEnabled="false"
+                            android:longClickable="true"
+                            android:visibility="visible" />
+
+                        <ProgressBar
+                            style="?android:attr/progressBarStyleSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/wifiCollectProgressBar"
+                            android:layout_gravity="center"
+                            android:visibility="visible" />
+                    </FrameLayout>
                 </TableRow>
+
                 <TableRow
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
@@ -69,17 +86,17 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:id="@+id/editHiddenDomainText"
-                        android:layout_marginStart="26dp"
-                        android:inputType="text" />
+                        android:inputType="text"/>
 
                 </TableRow>
+
                 <TableRow
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
                     <TextView
                         android:layout_width="wrap_content"
-                        android:layout_height="150dp"
+                        android:layout_height="110dp"
                         android:text="@string/security_type_label_text"
                         android:id="@+id/securityTypeLabel"
                         android:labelFor="@+id/securityTypeListView" />
@@ -92,7 +109,9 @@
 
                         <RadioGroup
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent">
+                            android:layout_height="110dp"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true">
 
                             <RadioButton
                                 android:layout_width="wrap_content"
@@ -163,10 +182,22 @@
                         android:text="@string/submit_button_text"
                         android:id="@+id/submitButton"
                         android:clickable="true"
-                        android:enabled="true"
+                        android:enabled="false"
                         android:focusable="true"
                         android:layout_column="1"
                         android:onClick="submit" />
+                </TableRow>
+                <TableRow
+                    android:layout_width="fill_parent"
+                    android:layout_height="match_parent">
+                    <ProgressBar
+                        style="?android:attr/progressBarStyleSmall"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_column="1"
+                        android:id="@+id/broadcastProgressBar"
+                        android:visibility="gone" />
+
                 </TableRow>
             </TableLayout>
         </ScrollView>
